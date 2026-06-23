@@ -398,9 +398,18 @@ public class BookListFrame extends javax.swing.JFrame { // 图书列表窗口，
         // 点击添加 → 打开新增图书窗口，传入当前列表窗口以便刷新
         //new AddBookFrame(this).setVisible(true);
          AddBookFrame addFrame = new AddBookFrame(this);
-         addFrame.setVisible(true);
-        // 关键：打开添加弹窗时，把底层原生BookListFrame永久隐藏
-        this.setVisible(false);
+    addFrame.setVisible(true);
+    // 关键：打开添加弹窗时，把底层原生BookListFrame永久隐藏
+    this.setVisible(false);
+    // 监听添加窗口关闭，全程不让原生窗口弹出
+    addFrame.addWindowListener(new java.awt.event.WindowAdapter() {
+        @Override
+        public void windowClosed(java.awt.event.WindowEvent e) {
+            loadBookData();
+            // 关闭添加弹窗后，依旧保持原生BookListFrame隐藏，只使用Tab里的面板
+            setVisible(false);
+        }
+    });
     
     }//GEN-LAST:event_jToggleButton1ActionPerformed
 
