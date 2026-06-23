@@ -139,7 +139,7 @@ public class BorrowBookDialog extends javax.swing.JDialog {
                 JOptionPane.showMessageDialog(this, "借阅成功！");
                 this.dispose();
             } else {
-                JOptionPane.showMessageDialog(this, "借阅失败：图书库存不足或 ID 无效！");
+                JOptionPane.showMessageDialog(this, "借阅失败：读者不存在/已注销，或图书库存不足！");
             }
         } catch (NumberFormatException e) {
             JOptionPane.showMessageDialog(this, "请输入有效的数字 ID！");
@@ -156,4 +156,6 @@ public class BorrowBookDialog extends javax.swing.JDialog {
     private javax.swing.JTextField txtReaderId;
     // End of variables declaration//GEN-END:variables
 }
+
+
 

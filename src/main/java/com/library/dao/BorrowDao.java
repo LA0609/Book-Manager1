@@ -104,6 +104,15 @@ public class BorrowDao {
             conn = DBUtil.getConnection();
             conn.setAutoCommit(false);
 
+            // Check reader status first
+            PreparedStatement readerStmt = conn.prepareStatement("SELECT status FROM readers WHERE id = ?");
+            readerStmt.setInt(1, readerId);
+            ResultSet readerRs = readerStmt.executeQuery();
+            if (!readerRs.next() || !"正常".equals(readerRs.getString("status"))) {
+                return false;
+            }
+
+            // Check book availability
             PreparedStatement checkStmt = conn.prepareStatement("SELECT current_count FROM books WHERE id = ?");
             checkStmt.setInt(1, bookId);
             ResultSet rs = checkStmt.executeQuery();
@@ -190,3 +199,4 @@ public class BorrowDao {
         return -1;
     }
 }
+
