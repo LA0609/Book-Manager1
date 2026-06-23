@@ -12,7 +12,7 @@ import java.sql.Statement;
 public class DBUtil {
     
     // ---------------------------------------------------------
-    // 1. MySQL 连接配置
+    // 1. MySQL 连接配置 
     // ---------------------------------------------------------
     
     // 连接 URL：jdbc:mysql://地址:端口/库名?参数
@@ -21,8 +21,8 @@ public class DBUtil {
     // 用户名 (默认是 root)
     private static final String USER = "root"; 
     
-    // 密码
-    private static final String PASSWORD = "3296901701aA@";
+    // 密码 (改成你电脑上 MySQL 的密码！)
+    private static final String PASSWORD = "cjj060830."; 
 
     // ---------------------------------------------------------
     // 2. 静态代码块 (加载驱动)
@@ -85,6 +85,7 @@ public class DBUtil {
                     "id INT PRIMARY KEY AUTO_INCREMENT," +
                     "card_no VARCHAR(20)," +
                     "name VARCHAR(50) NOT NULL," +
+                    "gender VARCHAR(4)," +
                     "phone VARCHAR(20)," +
                     "status VARCHAR(20) DEFAULT '正常'" +
                     ")");
@@ -96,8 +97,7 @@ public class DBUtil {
                     "reader_id INT," +
                     "borrow_date VARCHAR(20)," +
                     "return_date VARCHAR(20)," +
-                    "status VARCHAR(20) DEFAULT '借出' ," + 
-                    "fine DECIMAL(10,2) DEFAULT 0" +
+                    "status VARCHAR(20) DEFAULT '借出'" +
                     ")");
             
             System.out.println(">>> [DBUtil] 所有数据表初始化成功！");
