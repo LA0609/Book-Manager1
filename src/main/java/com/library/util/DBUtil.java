@@ -79,25 +79,16 @@ public class DBUtil {
             stmt.execute("CREATE DATABASE IF NOT EXISTS library_db");
             stmt.execute("USE library_db");
 
-            // 2. 先删旧表（按外键依赖倒序删除），确保表结构始终与代码一致
-            //    SET FOREIGN_KEY_CHECKS=0 临时关闭外键约束，避免删表报错
-            stmt.execute("SET FOREIGN_KEY_CHECKS=0");
-            stmt.execute("DROP TABLE IF EXISTS borrow_records");
-            stmt.execute("DROP TABLE IF EXISTS books");
-            stmt.execute("DROP TABLE IF EXISTS readers");
-            stmt.execute("DROP TABLE IF EXISTS users");
-            stmt.execute("SET FOREIGN_KEY_CHECKS=1");
-
-            // 3. 创建用户表：存储登录账号信息
-            stmt.execute("CREATE TABLE users ("
+            // 2. 创建用户表：存储登录账号信息（IF NOT EXISTS 保护已有数据）
+            stmt.execute("CREATE TABLE IF NOT EXISTS users ("
                     + "id INT PRIMARY KEY AUTO_INCREMENT,"
                     + "username VARCHAR(50) NOT NULL,"
                     + "password VARCHAR(50) NOT NULL,"
                     + "role VARCHAR(20) DEFAULT 'admin'"
                     + ")");
 
-            // 4. 创建图书表：is_delete 字段实现逻辑删除（0=正常，1=已删除）
-            stmt.execute("CREATE TABLE books ("
+            // 3. 创建图书表：is_delete 字段实现逻辑删除（0=正常，1=已删除）
+            stmt.execute("CREATE TABLE IF NOT EXISTS books ("
                     + "id INT PRIMARY KEY AUTO_INCREMENT,"
                     + "isbn VARCHAR(20),"
                     + "name VARCHAR(100) NOT NULL,"
@@ -108,8 +99,8 @@ public class DBUtil {
                     + "is_delete INT DEFAULT 0"
                     + ")");
 
-            // 5. 创建读者表：status 字段控制读者是否可借阅
-            stmt.execute("CREATE TABLE readers ("
+            // 4. 创建读者表：status 字段控制读者是否可借阅
+            stmt.execute("CREATE TABLE IF NOT EXISTS readers ("
                     + "id INT PRIMARY KEY AUTO_INCREMENT,"
                     + "card_no VARCHAR(20),"
                     + "name VARCHAR(50) NOT NULL,"
@@ -118,8 +109,8 @@ public class DBUtil {
                     + "status VARCHAR(20) DEFAULT '正常'"
                     + ")");
 
-            // 6. 创建借阅记录表：记录借还行为，fine 字段存储逾期罚款
-            stmt.execute("CREATE TABLE borrow_records ("
+            // 5. 创建借阅记录表：记录借还行为，fine 字段存储逾期罚款
+            stmt.execute("CREATE TABLE IF NOT EXISTS borrow_records ("
                     + "id INT PRIMARY KEY AUTO_INCREMENT,"
                     + "book_id INT,"
                     + "reader_id INT,"
@@ -129,8 +120,10 @@ public class DBUtil {
                     + "fine DECIMAL(10,2) DEFAULT 0"
                     + ")");
 
-            // 7. 插入默认管理员账号
-            stmt.execute("INSERT INTO users (username, password, role) VALUES ('admin', '123456', 'admin')");
+            // 6. 插入默认管理员账号（仅在 users 表为空时插入，防止重复）
+            stmt.execute("INSERT INTO users (username, password, role) "
+                    + "SELECT 'admin', '123456', 'admin' FROM DUAL "
+                    + "WHERE NOT EXISTS (SELECT 1 FROM users LIMIT 1)");
 
             System.out.println("数据库初始化完成！所有表已就绪。");
 
