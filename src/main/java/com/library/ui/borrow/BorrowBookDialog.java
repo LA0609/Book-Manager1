@@ -2,15 +2,20 @@ package com.library.ui.borrow;
 
 import com.library.dao.BorrowDao;
 import javax.swing.JOptionPane;
+import javax.swing.SpinnerNumberModel;
 
 /**
  * 【弹窗】办理借书
+ * 功能：输入读者编号和图书ID，设置借阅天数，完成借书操作
+ * 校验：读者编号/图书ID必须为正整数，借阅天数范围1~365天
  */
 public class BorrowBookDialog extends javax.swing.JDialog {
 
     public BorrowBookDialog(java.awt.Frame parent, boolean modal) {
         super(parent, modal);
         initComponents();
+        // 设置借阅天数范围：最小1天，最大365天，默认30天
+        spinnerDays.setModel(new SpinnerNumberModel(30, 1, 365, 1));
     }
 
     @SuppressWarnings("unchecked")
@@ -30,10 +35,10 @@ public class BorrowBookDialog extends javax.swing.JDialog {
         setSize(new java.awt.Dimension(420, 350));
 
         jlabel.setFont(new java.awt.Font("Microsoft YaHei UI", 0, 14));
-        jlabel.setText("请输入读者ID：");
+        jlabel.setText("读者编号：");
 
         jalabel1.setFont(new java.awt.Font("Microsoft YaHei UI", 0, 14));
-        jalabel1.setText("请输入图书ID：");
+        jalabel1.setText("图书ID：");
 
         txtReaderId.setFont(new java.awt.Font("Microsoft YaHei UI", 0, 14));
         txtReaderId.addActionListener(new java.awt.event.ActionListener() {
@@ -115,34 +120,51 @@ public class BorrowBookDialog extends javax.swing.JDialog {
 
     private void btnConfirmBorrowActionPerformed(java.awt.event.ActionEvent evt) {
         try {
-            int readerId = Integer.parseInt(txtReaderId.getText());
-            int bookId = Integer.parseInt(txtBookId.getText());
-            
+            // 获取并校验读者编号（必须为正整数）
+            int readerId = Integer.parseInt(txtReaderId.getText().trim());
+            if (readerId <= 0) {
+                JOptionPane.showMessageDialog(this, "读者编号必须为正整数！");
+                return;
+            }
+
+            // 获取并校验图书ID（必须为正整数）
+            int bookId = Integer.parseInt(txtBookId.getText().trim());
+            if (bookId <= 0) {
+                JOptionPane.showMessageDialog(this, "图书ID必须为正整数！");
+                return;
+            }
+
+            // 获取借阅天数（SpinnerNumberModel已限制1~365）
+            int days = (int) spinnerDays.getValue();
+
             BorrowDao dao = new BorrowDao();
 
+            // 检查该读者是否有逾期未还书籍
             if (dao.checkOverdue(readerId)) {
                 JOptionPane.showMessageDialog(this, "借阅失败：该读者有逾期未还书籍，请先处理！");
                 return;
             }
 
+            // 检查该读者借阅数量是否已达上限（5本）
             if (!dao.checkLimit(readerId)) {
                 JOptionPane.showMessageDialog(this, "借阅失败：该读者借阅数量已达上限（5本）！");
                 return;
             }
 
-            int days = (int) spinnerDays.getValue();
+            // 计算借阅日期和应还日期
             String borrowDate = java.time.LocalDate.now().toString();
             String returnDate = java.time.LocalDate.now().plusDays(days).toString();
-            
+
+            // 执行借书操作
             boolean success = dao.borrowBook(bookId, readerId, borrowDate, returnDate);
             if (success) {
-                JOptionPane.showMessageDialog(this, "借阅成功！");
+                JOptionPane.showMessageDialog(this, "借阅成功！\n应还日期：" + returnDate);
                 this.dispose();
             } else {
                 JOptionPane.showMessageDialog(this, "借阅失败：读者不存在/已注销，或图书库存不足！");
             }
         } catch (NumberFormatException e) {
-            JOptionPane.showMessageDialog(this, "请输入有效的数字 ID！");
+            JOptionPane.showMessageDialog(this, "请输入有效的正整数！");
         }
     }
 
@@ -156,6 +178,3 @@ public class BorrowBookDialog extends javax.swing.JDialog {
     private javax.swing.JTextField txtReaderId;
     // End of variables declaration//GEN-END:variables
 }
-
-
-

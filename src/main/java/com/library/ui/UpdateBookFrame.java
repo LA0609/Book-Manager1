@@ -288,14 +288,22 @@ public UpdateBookFrame(int bookId, BookListFrame mainWin) {
            }
 try {
     int totalCount = totalCountStr.length() == 0 ? 0 : Integer.parseInt(totalCountStr);
-    int currentCount;
-
-    // 根据状态设置 current_count
-    if ("可借阅".equals(status)) {
-        currentCount = totalCount; // 可借阅 = 全部在馆
-    } else {
-        currentCount = 0; // 已借阅 = 全部借出
+    if (totalCount < 0) {
+        JOptionPane.showMessageDialog(this, "总藏书量不能为负数！", "输入错误", JOptionPane.WARNING_MESSAGE);
+        return;
     }
+    // 计算已借出数量，新总藏不能小于已借出量
+    BookDao dao = new BookDao();
+    Book oldBook = dao.findById(bookId);
+    int borrowedCount = (oldBook != null) ? (oldBook.getTotalCount() - oldBook.getCurrentCount()) : 0;
+    if (totalCount < borrowedCount) {
+        JOptionPane.showMessageDialog(this,
+            "总藏书量不能小于已借出数量（" + borrowedCount + " 本）！\n请先归还部分图书后再修改。",
+            "提示", JOptionPane.WARNING_MESSAGE);
+        return;
+    }
+    // 新在馆量 = 新总藏 - 已借出
+    int currentCount = totalCount - borrowedCount;
 
     Book book = new Book();
     book.setId(bookId);

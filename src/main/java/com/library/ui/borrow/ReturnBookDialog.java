@@ -3,6 +3,11 @@ package com.library.ui.borrow;
 import com.library.dao.BorrowDao;
 import javax.swing.JOptionPane;
 
+/**
+ * 【弹窗】办理还书
+ * 功能：输入借阅记录号，执行归还操作，自动计算逾期罚款
+ * 校验：记录号必须为正整数
+ */
 public class ReturnBookDialog extends javax.swing.JDialog {
 
     public ReturnBookDialog(java.awt.Frame parent, boolean modal) {
@@ -22,13 +27,13 @@ public class ReturnBookDialog extends javax.swing.JDialog {
         setTitle("办理图书归还");
 
         jLabel1.setFont(new java.awt.Font("Microsoft YaHei UI", 0, 14));
-        jLabel1.setText("借阅记录ID：");
+        jLabel1.setText("借阅记录号：");
 
         txtRecordId.setFont(new java.awt.Font("Microsoft YaHei UI", 0, 14));
 
         jLabelTip.setFont(new java.awt.Font("Microsoft YaHei UI", 0, 10));
         jLabelTip.setForeground(new java.awt.Color(99, 99, 99));
-        jLabelTip.setText("(提示：输入借阅记录ID)");
+        jLabelTip.setText("(提示：从借阅列表中复制记录号)");
 
         btnConfirmReturn.setBackground(new java.awt.Color(51, 204, 51));
         btnConfirmReturn.setFont(new java.awt.Font("Microsoft YaHei UI", 1, 16));
@@ -78,10 +83,17 @@ public class ReturnBookDialog extends javax.swing.JDialog {
 
     private void btnConfirmReturnActionPerformed(java.awt.event.ActionEvent evt) {
         try {
-            int recordId = Integer.parseInt(txtRecordId.getText());
+            // 获取并校验记录号（必须为正整数）
+            int recordId = Integer.parseInt(txtRecordId.getText().trim());
+            if (recordId <= 0) {
+                JOptionPane.showMessageDialog(this, "借阅记录号必须为正整数！");
+                return;
+            }
+
+            // 执行归还操作，返回罚款金额（-1表示失败）
             double fine = new BorrowDao().returnBook(recordId);
             if (fine == -1) {
-                JOptionPane.showMessageDialog(this, "归还失败：记录ID不存在或已归还！");
+                JOptionPane.showMessageDialog(this, "归还失败：记录号不存在或已归还！");
             } else if (fine > 0) {
                 JOptionPane.showMessageDialog(this,
                     "归还成功！\n逾期罚款：¥" + String.format("%.2f", fine) + "\n（超过应还日期，每天0.5元，上限50元）");
@@ -90,7 +102,7 @@ public class ReturnBookDialog extends javax.swing.JDialog {
             }
             this.dispose();
         } catch (NumberFormatException e) {
-            JOptionPane.showMessageDialog(this, "请输入有效的记录ID！");
+            JOptionPane.showMessageDialog(this, "请输入有效的记录号！");
         }
     }
 

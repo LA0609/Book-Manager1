@@ -33,7 +33,6 @@ public class BookListFrame extends javax.swing.JFrame { // 图书列表窗口，
     // 加载所有未删除图书到表格-
  void loadBookData(){
     // 这里替换成带WHERE过滤的SQL，只查询逻辑未删除图书 is_delete=0
-    String sql = "SELECT id,isbn,name,author,publisher,total_count,current_count FROM books WHERE is_delete = 0";
     List<Book> bookList = new BookDao().findAll();
     // 清空表格原有数据
     DefaultTableModel model = (DefaultTableModel) tableBooks.getModel();
@@ -101,7 +100,7 @@ public class BookListFrame extends javax.swing.JFrame { // 图书列表窗口，
             }
         });
 
-        jButton1.setBackground(new java.awt.Color(211, 246, 246));
+        jButton1.setBackground(new java.awt.Color(204, 204, 204));
         jButton1.setText("查询");
         jButton1.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
@@ -258,7 +257,7 @@ public class BookListFrame extends javax.swing.JFrame { // 图书列表窗口，
         jPanel1.add(jPanel3, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 230, 820, 260));
         jPanel1.add(jSeparator9, new org.netbeans.lib.awtextra.AbsoluteConstraints(20, 600, 780, 15));
 
-        jToggleButton1.setBackground(new java.awt.Color(201, 238, 238));
+        jToggleButton1.setBackground(new java.awt.Color(204, 204, 204));
         jToggleButton1.setText("添加");
         jToggleButton1.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
@@ -267,7 +266,7 @@ public class BookListFrame extends javax.swing.JFrame { // 图书列表窗口，
         });
         jPanel1.add(jToggleButton1, new org.netbeans.lib.awtextra.AbsoluteConstraints(120, 530, -1, -1));
 
-        jToggleButton2.setBackground(new java.awt.Color(199, 238, 238));
+        jToggleButton2.setBackground(new java.awt.Color(204, 204, 204));
         jToggleButton2.setText("修改");
         jToggleButton2.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
@@ -277,7 +276,7 @@ public class BookListFrame extends javax.swing.JFrame { // 图书列表窗口，
         jPanel1.add(jToggleButton2, new org.netbeans.lib.awtextra.AbsoluteConstraints(300, 530, -1, -1));
         jPanel1.add(jSeparator3, new org.netbeans.lib.awtextra.AbsoluteConstraints(10, 190, 748, 10));
 
-        jToggleButton3.setBackground(new java.awt.Color(206, 244, 244));
+        jToggleButton3.setBackground(new java.awt.Color(204, 204, 204));
         jToggleButton3.setText("删除");
         jToggleButton3.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
@@ -295,7 +294,7 @@ public class BookListFrame extends javax.swing.JFrame { // 图书列表窗口，
         });
         jPanel1.add(jButton2, new org.netbeans.lib.awtextra.AbsoluteConstraints(670, 510, -1, -1));
 
-        jButton3.setBackground(new java.awt.Color(243, 205, 246));
+        jButton3.setBackground(new java.awt.Color(204, 255, 255));
         jButton3.setText("返回");
         jButton3.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
@@ -312,7 +311,7 @@ public class BookListFrame extends javax.swing.JFrame { // 图书列表窗口，
             jLayeredPane1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(jLayeredPane1Layout.createSequentialGroup()
                 .addGap(3, 3, 3)
-                .addComponent(jPanel1, javax.swing.GroupLayout.DEFAULT_SIZE, 850, Short.MAX_VALUE)
+                .addComponent(jPanel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                 .addGap(3, 3, 3))
         );
         jLayeredPane1Layout.setVerticalGroup(
@@ -376,8 +375,8 @@ public class BookListFrame extends javax.swing.JFrame { // 图书列表窗口，
             b.getName(),
             b.getAuthor(),
             b.getPublisher(),
-            b.getTotalCount(),
-            b.getCurrentCount()
+            b.getCurrentCount(),
+            b.getTotalCount()
             });
             }
 

@@ -42,3 +42,6 @@ build/
 
 # IDE - full .idea directory
 .idea/
+
+# Backup folders
+backup_*/

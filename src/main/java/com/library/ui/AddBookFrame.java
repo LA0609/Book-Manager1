@@ -267,6 +267,11 @@ public class AddBookFrame extends javax.swing.JFrame {
         try {
             // 转换库存数字
             int totalCount = totalStr.isEmpty() ? 0 : Integer.parseInt(totalStr);
+            // 校验库存必须为正整数
+            if (totalCount <= 0) {
+                JOptionPane.showMessageDialog(this, "库存数量必须大于0！", "输入错误", JOptionPane.WARNING_MESSAGE);
+                return;
+            }
             int currentCount = "可借阅".equals(status) ? totalCount : 0;
 
             // 封装图书对象

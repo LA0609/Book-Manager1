@@ -1,31 +1,28 @@
 package com.library.model;
 
 /**
- * 【实体类】User (用户)
- * 
- * 作用：对应数据库中的 users 表。
- * 设计：每个 private 属性对应表中的一个字段。
- * 
- * 为什么要有 Getter/Setter？
- * 为了封装性：外部不能直接访问属性，必须通过方法，这样可以保证数据安全。
+ * 用户实体类。
+ * 作用：表示系统中的登录账号信息，相当于“用户的电子档案”。
+ * 对应数据库 `users` 表，登录验证、角色判断都依赖该实体承载查询结果。
+ * 设计说明：字段与表列一一对应，并通过 Getter/Setter 保持封装性。
  */
 public class User {
     // ---------------------------------------------------------
     // 1. 成员变量 (对应数据库字段)
     // ---------------------------------------------------------
-    private int id;          // 用户唯一ID (主键)
-    private String username; // 登录账号
-    private String password; // 登录密码 (实际项目中应加密存储，课设明文即可)
-    private String role;     // 角色 (admin: 管理员, user: 普通用户)
+    private int id;          // 用户唯一编号，数据库自增主键
+    private String username; // 登录账号，登录时按该字段精确查询
+    private String password; // 登录密码，本项目课设阶段为明文校验
+    private String role;     // 角色，用于区分权限，如 `admin` 表示管理员
 
     // ---------------------------------------------------------
     // 2. 构造方法
     // ---------------------------------------------------------
     
-    // 无参构造：反射机制需要，必须保留
+    // 无参构造，框架反射和结果集映射场景需要
     public User() {}
 
-    // 全参构造：方便一次性创建对象
+    // 全参构造，便于在测试或批量初始化时一次性赋值
     public User(int id, String username, String password, String role) {
         this.id = id;
         this.username = username;
@@ -37,12 +34,12 @@ public class User {
     // 3. Getter 和 Setter 方法
     // ---------------------------------------------------------
     
-    // 获取 ID
+    // 获取用户编号
     public int getId() {
         return id;
     }
 
-    // 设置 ID
+    // 设置用户编号
     public void setId(int id) {
         this.id = id;
     }
@@ -71,7 +68,7 @@ public class User {
         this.role = role;
     }
     
-    // 重写 toString 方法：打印对象时显示有用的信息，方便调试
+    // 重写 toString，便于日志和调试时快速看到关键信息
     @Override
     public String toString() {
         return "User{id=" + id + ", username='" + username + "', role='" + role + "'}";

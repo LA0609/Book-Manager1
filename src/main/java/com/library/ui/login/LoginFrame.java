@@ -4,8 +4,14 @@
  */
 package com.library.ui.login;
 
+import com.library.dao.UserDao;
+import com.library.model.User;
+import com.library.Main;
+import javax.swing.JOptionPane;
+
 /**
- *
+ * 登录窗口类
+ * 功能：用户输入账号密码，验证通过后进入图书管理系统主界面
  * @author LA
  */
 public class LoginFrame extends javax.swing.JFrame {
@@ -15,6 +21,51 @@ public class LoginFrame extends javax.swing.JFrame {
      */
     public LoginFrame() {
         initComponents();
+        // 设置窗口标题
+        setTitle("图书管理系统——登录");
+        // 窗口居中
+        setLocationRelativeTo(null);
+        // 设置窗口大小（比默认pack更合适）
+        setSize(450, 380);
+        // 回车键触发登录（在密码框按回车直接登录）
+        jPasswordField1.addActionListener(evt -> doLogin());
+        // 为登录按钮绑定点击事件
+        jButton1.addActionListener(evt -> doLogin());
+    }
+
+    /**
+     * 执行登录验证逻辑
+     * 流程：获取输入 → 查询数据库 → 验证密码 → 打开主窗口
+     */
+    private void doLogin() {
+        // 1. 获取用户输入
+        String username = jTextField1.getText().trim();
+        String password = new String(jPasswordField1.getPassword()).trim();
+
+        // 2. 非空校验
+        if (username.isEmpty() || password.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "用户名和密码不能为空！");
+            return;
+        }
+
+        // 3. 查询数据库验证
+        UserDao userDao = new UserDao();
+        User user = userDao.findByUsername(username);
+
+        if (user == null) {
+            JOptionPane.showMessageDialog(this, "用户不存在！");
+            return;
+        }
+
+        if (!password.equals(user.getPassword())) {
+            JOptionPane.showMessageDialog(this, "密码错误！");
+            return;
+        }
+
+        // 4. 登录成功，打开主窗口，关闭登录窗口
+        JOptionPane.showMessageDialog(this, "登录成功！欢迎，" + user.getUsername());
+        new Main().setVisible(true);
+        this.dispose();
     }
 
     /**
@@ -100,18 +151,14 @@ public class LoginFrame extends javax.swing.JFrame {
     }// </editor-fold>//GEN-END:initComponents
 
     private void jTextField1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jTextField1ActionPerformed
-        // TODO add your handling code here:
+        // 用户名框按回车跳到密码框
+        jPasswordField1.requestFocus();
     }//GEN-LAST:event_jTextField1ActionPerformed
 
     /**
      * @param args the command line arguments
      */
     public static void main(String args[]) {
-        /* Set the Nimbus look and feel */
-        //<editor-fold defaultstate="collapsed" desc=" Look and feel setting code (optional) ">
-        /* If Nimbus (introduced in Java SE 6) is not available, stay with the default look and feel.
-         * For details see http://download.oracle.com/javase/tutorial/uiswing/lookandfeel/plaf.html 
-         */
         try {
             for (javax.swing.UIManager.LookAndFeelInfo info : javax.swing.UIManager.getInstalledLookAndFeels()) {
                 if ("Nimbus".equals(info.getName())) {
@@ -128,9 +175,7 @@ public class LoginFrame extends javax.swing.JFrame {
         } catch (javax.swing.UnsupportedLookAndFeelException ex) {
             java.util.logging.Logger.getLogger(LoginFrame.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
         }
-        //</editor-fold>
 
-        /* Create and display the form */
         java.awt.EventQueue.invokeLater(new Runnable() {
             public void run() {
                 new LoginFrame().setVisible(true);
