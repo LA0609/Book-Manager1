@@ -305,8 +305,10 @@ try {
     // 新在馆量 = 新总藏 - 已借出
     int currentCount = totalCount - borrowedCount;
 
+    // 保留原始ISBN（修改界面没有ISBN输入框，不能丢失）
     Book book = new Book();
     book.setId(bookId);
+    book.setIsbn(oldBook != null ? oldBook.getIsbn() : "");
     book.setName(name);
     book.setAuthor(author);
     book.setPublisher(publisher);
