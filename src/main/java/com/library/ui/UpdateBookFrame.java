@@ -72,8 +72,6 @@ public UpdateBookFrame(int bookId, BookListFrame mainWin) {
         jTextField5 = new javax.swing.JTextField();
         jLabel8 = new javax.swing.JLabel();
         jTextField6 = new javax.swing.JTextField();
-        jLabel11 = new javax.swing.JLabel();
-        jComboBox2 = new javax.swing.JComboBox<>();
         jButton2 = new javax.swing.JButton();
         jSeparator1 = new javax.swing.JSeparator();
         jToggleButton1 = new javax.swing.JToggleButton();
@@ -102,11 +100,6 @@ public UpdateBookFrame(int bookId, BookListFrame mainWin) {
         jLabel7.setText("库存：");
 
         jLabel8.setText("出版社：");
-
-        jLabel11.setText("状态：");
-
-        jComboBox2.setBackground(new java.awt.Color(204, 204, 204));
-        jComboBox2.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "可借阅", "已借阅" }));
 
         jButton2.setBackground(new java.awt.Color(241, 209, 209));
         jButton2.setText("修改");
@@ -142,9 +135,6 @@ public UpdateBookFrame(int bookId, BookListFrame mainWin) {
                     .addGroup(jPanel4Layout.createSequentialGroup()
                         .addGroup(jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
                             .addComponent(jSeparator6)
-                            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel4Layout.createSequentialGroup()
-                                .addComponent(jLabel11, javax.swing.GroupLayout.PREFERRED_SIZE, 48, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                .addGap(26, 26, 26))
                             .addGroup(jPanel4Layout.createSequentialGroup()
                                 .addGap(10, 10, 10)
                                 .addComponent(jLabel8)
@@ -156,12 +146,9 @@ public UpdateBookFrame(int bookId, BookListFrame mainWin) {
                         .addGroup(jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addGroup(jPanel4Layout.createSequentialGroup()
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                                .addGroup(jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                                    .addComponent(jComboBox2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                    .addGroup(jPanel4Layout.createSequentialGroup()
-                                        .addComponent(jLabel4)
-                                        .addGap(18, 18, 18)
-                                        .addComponent(jSeparator7))))
+                                .addComponent(jLabel4)
+                                .addGap(18, 18, 18)
+                                .addComponent(jSeparator7))
                             .addGroup(jPanel4Layout.createSequentialGroup()
                                 .addGap(74, 74, 74)
                                 .addGroup(jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
@@ -206,11 +193,7 @@ public UpdateBookFrame(int bookId, BookListFrame mainWin) {
                     .addGroup(jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                         .addComponent(jLabel8)
                         .addComponent(jTextField5, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))
-                .addGap(31, 31, 31)
-                .addGroup(jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(jLabel11)
-                    .addComponent(jComboBox2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 44, Short.MAX_VALUE)
                 .addGroup(jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jButton2)
                     .addComponent(jToggleButton1))
@@ -233,7 +216,7 @@ public UpdateBookFrame(int bookId, BookListFrame mainWin) {
             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
                 .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(jPanel4, javax.swing.GroupLayout.PREFERRED_SIZE, 291, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(jPanel4, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(jPanel1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addContainerGap())
         );
@@ -244,29 +227,22 @@ public UpdateBookFrame(int bookId, BookListFrame mainWin) {
     /**
      * 从数据库加载选中图书的数据，填充到输入框
      */
-    private void loadBookData() {
-         // int基础类型，只需判断是否大于0
+    void loadBookData() {
     if (bookId <= 0) return;
-        try {
-            BookDao bookDao = new BookDao();
-            Book book = bookDao.findById(bookId);
-            if (book != null) {
-                jTextField3.setText(book.getName());                   // 书名
-                jTextField4.setText(book.getAuthor());                 // 作者
-                jTextField5.setText(book.getPublisher());              // 出版社
-                jTextField6.setText(String.valueOf(book.getTotalCount())); // 库存/总藏书量
-                // 根据 current_count 设置状态下拉框
-                if (book.getCurrentCount() > 0) {
-                    jComboBox2.setSelectedItem("可借阅");
-                } else {
-                    jComboBox2.setSelectedItem("已借阅");
-                }
-            }
-        } catch (Exception e) {
-            JOptionPane.showMessageDialog(this, "加载数据失败：" + e.getMessage(), "错误", JOptionPane.ERROR_MESSAGE);
-             e.printStackTrace();
+    try {
+        BookDao bookDao = new BookDao();
+        Book book = bookDao.findById(bookId);
+        if (book != null) {
+            jTextField3.setText(book.getName());                   // 书名
+            jTextField4.setText(book.getAuthor());                 // 作者
+            jTextField5.setText(book.getPublisher());              // 出版社
+            jTextField6.setText(String.valueOf(book.getTotalCount())); // 库存/总藏书量
         }
+    } catch (Exception e) {
+        JOptionPane.showMessageDialog(this, "加载数据失败：" + e.getMessage(), "错误", JOptionPane.ERROR_MESSAGE);
+        e.printStackTrace();
     }
+}
 
     private void jButton2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton2ActionPerformed
         if (bookId <= 0) {
@@ -279,7 +255,6 @@ public UpdateBookFrame(int bookId, BookListFrame mainWin) {
         String author = jTextField4.getText().trim();
         String publisher = jTextField5.getText().trim();
         String totalCountStr = jTextField6.getText().trim();
-        String status = (String) jComboBox2.getSelectedItem(); // 获取状态：可借阅/已借阅
 
 
         if (name.length() == 0) {
@@ -307,6 +282,7 @@ try {
 
     Book book = new Book();
     book.setId(bookId);
+    book.setIsbn(oldBook != null ? oldBook.getIsbn():"");
     book.setName(name);
     book.setAuthor(author);
     book.setPublisher(publisher);
@@ -317,13 +293,12 @@ try {
     BookDao bookDao = new BookDao();
     bookDao.update(book);
     JOptionPane.showMessageDialog(this, "修改成功！");
-         
+    this.dispose(); // 关闭当前修改窗口     
     // 刷新原有列表窗口，不要new新窗口        
       if (mainListFrame != null) {
             mainListFrame.loadBookData();
-            mainListFrame.setVisible(true);
+             mainListFrame.toFront(); // 前置主界面，避免隐藏
         }
-        this.dispose(); // 关闭当前修改窗口
     } catch (Exception ex) {
         JOptionPane.showMessageDialog(this, "修改失败：" + ex.getMessage(), "错误", JOptionPane.ERROR_MESSAGE);
         ex.printStackTrace();
@@ -337,7 +312,7 @@ try {
     // 恢复显示图书查询列表，并刷新表格数据
     if(mainListFrame != null){
         mainListFrame.loadBookData();
-        mainListFrame.setVisible(true);
+        mainListFrame.toFront();
     }
     }//GEN-LAST:event_jToggleButton1ActionPerformed
 
@@ -378,8 +353,6 @@ try {
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton jButton2;
-    private javax.swing.JComboBox<String> jComboBox2;
-    private javax.swing.JLabel jLabel11;
     private javax.swing.JLabel jLabel4;
     private javax.swing.JLabel jLabel5;
     private javax.swing.JLabel jLabel6;

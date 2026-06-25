@@ -81,8 +81,13 @@ public class BookDao {
 
             pstmt.executeUpdate(); // 执行 INSERT
             System.out.println("图书入库成功！");
-        } catch (SQLException e) {
-            System.err.println("入库失败：" + e.getMessage());
+                } catch (SQLException e) {
+            // 数据库唯一索引冲突兜底（前端校验绕过的情况）
+            if(e.getMessage().contains("Duplicate entry")){
+                System.err.println("入库失败：图书编号重复");
+            }else{
+                System.err.println("入库失败：" + e.getMessage());
+            }
             e.printStackTrace();
         }
     }
@@ -224,5 +229,52 @@ public class BookDao {
             System.err.println("图书移除失败：" + e.getMessage());
             e.printStackTrace();
         }
+    }
+        /**
+     * 新增图书时校验isbn是否重复
+     * @param isbn 待添加的图书编号
+     * @return true=已存在重复编号，false=无重复
+     */
+    public boolean isIsbnExist(String isbn) {
+        String sql = "SELECT COUNT(*) FROM books WHERE isbn = ? AND is_delete = 0";
+        try (Connection conn = DBUtil.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setString(1, isbn);
+            try (ResultSet rs = pstmt.executeQuery()) {
+                if (rs.next()) {
+                    int count = rs.getInt(1);
+                    return count > 0;
+                }
+            }
+        } catch (SQLException e) {
+            System.err.println("校验编号重复失败：" + e.getMessage());
+            e.printStackTrace();
+        }
+        return false;
+    }
+
+    /**
+     * 修改图书时校验isbn重复（排除自身id，避免编辑时误判）
+     * @param isbn 新图书编号
+     * @param editId 当前正在修改的图书id
+     * @return true=和其他图书编号重复，false=无重复
+     */
+    public boolean isIsbnExistForUpdate(String isbn, int editId) {
+        String sql = "SELECT COUNT(*) FROM books WHERE isbn = ? AND id != ? AND is_delete = 0";
+        try (Connection conn = DBUtil.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setString(1, isbn);
+            pstmt.setInt(2, editId);
+            try (ResultSet rs = pstmt.executeQuery()) {
+                if (rs.next()) {
+                    int count = rs.getInt(1);
+                    return count > 0;
+                }
+            }
+        } catch (SQLException e) {
+            System.err.println("修改校验编号重复失败：" + e.getMessage());
+            e.printStackTrace();
+        }
+        return false;
     }
 }
