@@ -90,7 +90,7 @@ public class DBUtil {
             // 3. 创建图书表：is_delete 字段实现逻辑删除（0=正常，1=已删除）
             stmt.execute("CREATE TABLE IF NOT EXISTS books ("
                     + "id INT PRIMARY KEY AUTO_INCREMENT,"
-                    + "isbn VARCHAR(20),"
+                    + "isbn VARCHAR(20) NOT NULL,"
                     + "name VARCHAR(100) NOT NULL,"
                     + "author VARCHAR(50),"
                     + "publisher VARCHAR(100),"
