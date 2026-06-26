@@ -203,7 +203,7 @@
         </Component>
         <Component class="javax.swing.JLabel" name="jLabel7">
           <Properties>
-            <Property name="text" type="java.lang.String" value="&#x5e93;&#x5b58;&#xff1a;"/>
+            <Property name="text" type="java.lang.String" value="&#x603b;&#x85cf;&#x4e66;&#x91cf;&#xff1a;"/>
           </Properties>
         </Component>
         <Component class="javax.swing.JTextField" name="jTextField4">
@@ -216,6 +216,9 @@
           </Properties>
         </Component>
         <Component class="javax.swing.JTextField" name="jTextField6">
+          <Events>
+            <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="jTextField6ActionPerformed"/>
+          </Events>
         </Component>
         <Component class="javax.swing.JButton" name="jButton2">
           <Properties>

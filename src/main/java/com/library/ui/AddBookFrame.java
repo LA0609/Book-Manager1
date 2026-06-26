@@ -12,19 +12,21 @@ import javax.swing.JOptionPane;
  * @author lenovo
  */
 public class AddBookFrame extends javax.swing.JFrame {
+      // 持有图书列表主窗口对象，用于新增完成后刷新列表数据
         private BookListFrame mainFrame;
-
+        
     /**
-     * Creates new form AddBookFrame
-     */
-        /**
+     * 无参构造方法
      * Creates new form AddBookFrame
      */
     public AddBookFrame() {
+        // 自动生成的界面初始化方法，加载拖拽设计的控件布局
         initComponents();
+        // 设置窗口关闭行为：仅销毁当前弹窗，不关闭整个程序
          setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
         // 新增这一行，自定义窗口左上角标题
          setTitle("知书阁--图书添加");
+          // 自动适配窗口大小为控件所需尺寸
         pack();
         setLocationRelativeTo(null);
     }
@@ -220,7 +222,7 @@ public class AddBookFrame extends javax.swing.JFrame {
         String totalStr = jTextField6.getText().trim();   // 库存
         
 
-        // 空值校验（图书ID和库存可以为空，其他必填）
+        // 空值校验
         if (isbn.isEmpty() || name.isEmpty() || author.isEmpty() || publisher.isEmpty()) {
             JOptionPane.showMessageDialog(this, "图书编号、书名、作者、出版社不能为空！", "提示", JOptionPane.WARNING_MESSAGE);
             return;
@@ -234,7 +236,7 @@ public class AddBookFrame extends javax.swing.JFrame {
     }
 
         try {
-            // 转换库存数字
+             // 库存为空则默认0，否则转换为整数
             int totalCount = totalStr.isEmpty() ? 0 : Integer.parseInt(totalStr);
             // 校验库存必须为正整数
             if (totalCount <= 0) {
@@ -249,7 +251,8 @@ public class AddBookFrame extends javax.swing.JFrame {
             book.setAuthor(author);
             book.setPublisher(publisher);
             book.setTotalCount(totalCount);
-           
+            //初始库存=总藏书量，解决库存为0问题
+            book.setCurrentCount(totalCount);
 
             // 插入数据库
             new BookDao().add(book);
@@ -258,13 +261,11 @@ public class AddBookFrame extends javax.swing.JFrame {
             JOptionPane.showMessageDialog(this, "添加成功！", "提示", JOptionPane.INFORMATION_MESSAGE);
 
             // 返回原图书列表并刷新数据
-            // 改后（无白板）：
             if (mainFrame != null) {
             mainFrame.loadBookData();  // 只保留刷新
         }
+          // 关闭当前添加弹窗   
           this.dispose();
-  
-
         } catch (NumberFormatException e) {
             JOptionPane.showMessageDialog(this, "库存请输入有效数字！", "输入错误", JOptionPane.ERROR_MESSAGE);
         } catch (Exception e) {
