@@ -8,41 +8,84 @@ import com.library.model.Reader;
 import javax.swing.*;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
+import java.awt.*;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  * 【弹窗】办理借书
- * 功能：输入读者编号和图书ID，实时显示对应姓名/书名，设置借阅天数，完成借书
+ * 功能：通过书名/读者姓名模糊搜索选择，不需要记编号
+ * 重名读者通过ID区分
  */
 public class BorrowBookDialog extends javax.swing.JDialog {
 
-    private JLabel lblReaderName;
-    private JLabel lblBookName;
+    /** 选中的图书ID（-1表示未选择） */
+    private int selectedBookId = -1;
+    /** 选中的读者ID（-1表示未选择） */
+    private int selectedReaderId = -1;
+
+    /** 防抖定时器，避免每次按键都查数据库 */
+    private javax.swing.Timer bookSearchTimer;
+    private javax.swing.Timer readerSearchTimer;
 
     public BorrowBookDialog(java.awt.Frame parent, boolean modal) {
         super(parent, modal);
-        initComponents();
-        // 设置借阅天数范围
-        spinnerDays.setModel(new SpinnerNumberModel(30, 1, 365, 1));
-        // 建立完整布局（含实时查询标签）
-        setupLayout();
-        // 监听输入变化
-        addInputListeners();
-        setSize(380, 330);
+        setupUI();
+        setupSearchTimers();
+        setSize(450, 380);
         setLocationRelativeTo(parent);
     }
 
+    private JTextField txtBookName;
+    private JLabel lblBookInfo;
+    private JTextField txtReaderName;
+    private JLabel lblReaderInfo;
+    private JSpinner spinnerDays;
+    private JButton btnConfirm;
+
     /**
-     * 构建完整界面布局，在initComponents之后调用
+     * 构建完整界面
      */
-    private void setupLayout() {
-        lblReaderName = new JLabel(" ");
-        lblReaderName.setFont(new java.awt.Font("Microsoft YaHei UI", 0, 12));
-        lblReaderName.setForeground(new java.awt.Color(0, 102, 204));
+    private void setupUI() {
+        setTitle("办理图书借阅");
 
-        lblBookName = new JLabel(" ");
-        lblBookName.setFont(new java.awt.Font("Microsoft YaHei UI", 0, 12));
-        lblBookName.setForeground(new java.awt.Color(0, 102, 204));
+        // ---- 组件创建 ----
+        JLabel lblBook = new JLabel("书    名：");
+        lblBook.setFont(new Font("Microsoft YaHei UI", Font.PLAIN, 14));
 
+        txtBookName = new JTextField(20);
+        txtBookName.setFont(new Font("Microsoft YaHei UI", Font.PLAIN, 14));
+
+        lblBookInfo = new JLabel(" ");
+        lblBookInfo.setFont(new Font("Microsoft YaHei UI", Font.PLAIN, 12));
+        lblBookInfo.setForeground(new Color(0, 102, 204));
+
+        JLabel lblReader = new JLabel("读者姓名：");
+        lblReader.setFont(new Font("Microsoft YaHei UI", Font.PLAIN, 14));
+
+        txtReaderName = new JTextField(20);
+        txtReaderName.setFont(new Font("Microsoft YaHei UI", Font.PLAIN, 14));
+
+        lblReaderInfo = new JLabel(" ");
+        lblReaderInfo.setFont(new Font("Microsoft YaHei UI", Font.PLAIN, 12));
+        lblReaderInfo.setForeground(new Color(0, 102, 204));
+
+        JLabel lblDays = new JLabel("借阅天数：");
+        lblDays.setFont(new Font("Microsoft YaHei UI", Font.PLAIN, 14));
+
+        spinnerDays = new JSpinner(new SpinnerNumberModel(30, 1, 365, 1));
+        spinnerDays.setFont(new Font("Microsoft YaHei UI", Font.PLAIN, 14));
+
+        btnConfirm = new JButton("确 认 借 阅");
+        btnConfirm.setBackground(new Color(51, 153, 255));
+        btnConfirm.setFont(new Font("Microsoft YaHei UI", Font.BOLD, 16));
+        btnConfirm.setForeground(Color.WHITE);
+        btnConfirm.addActionListener(e -> doBorrow());
+
+        // ---- 布局 ----
         JPanel panel = new JPanel();
         GroupLayout layout = new GroupLayout(panel);
         panel.setLayout(layout);
@@ -53,18 +96,18 @@ public class BorrowBookDialog extends javax.swing.JDialog {
             layout.createSequentialGroup()
                 .addGap(20)
                 .addGroup(layout.createParallelGroup(GroupLayout.Alignment.LEADING)
-                    .addComponent(btnConfirmBorrow, GroupLayout.PREFERRED_SIZE, 200, GroupLayout.PREFERRED_SIZE)
+                    .addComponent(btnConfirm, GroupLayout.PREFERRED_SIZE, 200, GroupLayout.PREFERRED_SIZE)
                     .addGroup(layout.createSequentialGroup()
                         .addGroup(layout.createParallelGroup(GroupLayout.Alignment.LEADING)
-                            .addComponent(jlabel)
-                            .addComponent(jalabel1)
-                            .addComponent(jLabel3))
+                            .addComponent(lblBook)
+                            .addComponent(lblReader)
+                            .addComponent(lblDays))
                         .addGap(12)
                         .addGroup(layout.createParallelGroup(GroupLayout.Alignment.LEADING, false)
-                            .addComponent(txtReaderId, GroupLayout.PREFERRED_SIZE, 180, GroupLayout.PREFERRED_SIZE)
-                            .addComponent(lblReaderName)
-                            .addComponent(txtBookId, GroupLayout.PREFERRED_SIZE, 180, GroupLayout.PREFERRED_SIZE)
-                            .addComponent(lblBookName)
+                            .addComponent(txtBookName, GroupLayout.PREFERRED_SIZE, 220, GroupLayout.PREFERRED_SIZE)
+                            .addComponent(lblBookInfo)
+                            .addComponent(txtReaderName, GroupLayout.PREFERRED_SIZE, 220, GroupLayout.PREFERRED_SIZE)
+                            .addComponent(lblReaderInfo)
                             .addComponent(spinnerDays, GroupLayout.PREFERRED_SIZE, 120, GroupLayout.PREFERRED_SIZE))))
                 .addGap(20)
         );
@@ -72,136 +115,181 @@ public class BorrowBookDialog extends javax.swing.JDialog {
         layout.setVerticalGroup(
             layout.createSequentialGroup()
                 .addGap(20)
-                // 读者编号
+                // 书名
                 .addGroup(layout.createParallelGroup(GroupLayout.Alignment.BASELINE)
-                    .addComponent(jlabel)
-                    .addComponent(txtReaderId, GroupLayout.PREFERRED_SIZE, 31, GroupLayout.PREFERRED_SIZE))
-                .addComponent(lblReaderName)
-                .addGap(10)
-                // 图书ID
+                    .addComponent(lblBook)
+                    .addComponent(txtBookName, GroupLayout.PREFERRED_SIZE, 31, GroupLayout.PREFERRED_SIZE))
+                .addComponent(lblBookInfo)
+                .addGap(8)
+                // 读者姓名
                 .addGroup(layout.createParallelGroup(GroupLayout.Alignment.BASELINE)
-                    .addComponent(jalabel1)
-                    .addComponent(txtBookId, GroupLayout.PREFERRED_SIZE, 31, GroupLayout.PREFERRED_SIZE))
-                .addComponent(lblBookName)
-                .addGap(10)
+                    .addComponent(lblReader)
+                    .addComponent(txtReaderName, GroupLayout.PREFERRED_SIZE, 31, GroupLayout.PREFERRED_SIZE))
+                .addComponent(lblReaderInfo)
+                .addGap(8)
                 // 借阅天数
                 .addGroup(layout.createParallelGroup(GroupLayout.Alignment.BASELINE)
-                    .addComponent(jLabel3)
+                    .addComponent(lblDays)
                     .addComponent(spinnerDays, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
                 .addGap(20)
-                // 确认按钮
-                .addComponent(btnConfirmBorrow, GroupLayout.PREFERRED_SIZE, 40, GroupLayout.PREFERRED_SIZE)
+                .addComponent(btnConfirm, GroupLayout.PREFERRED_SIZE, 40, GroupLayout.PREFERRED_SIZE)
                 .addGap(20)
         );
 
         setContentPane(panel);
     }
 
-    private void addInputListeners() {
-        txtReaderId.getDocument().addDocumentListener(new DocumentListener() {
-            public void insertUpdate(DocumentEvent e) { lookupReader(); }
-            public void removeUpdate(DocumentEvent e) { lookupReader(); }
-            public void changedUpdate(DocumentEvent e) { lookupReader(); }
+    /**
+     * 设置搜索防抖（300ms延迟，停止打字后才查询）
+     */
+    private void setupSearchTimers() {
+        // 图书搜索防抖
+        bookSearchTimer = new javax.swing.Timer(300, e -> searchBook());
+        bookSearchTimer.setRepeats(false);
+        txtBookName.getDocument().addDocumentListener(new DocumentListener() {
+            public void insertUpdate(DocumentEvent e) { selectedBookId = -1; bookSearchTimer.restart(); }
+            public void removeUpdate(DocumentEvent e) { selectedBookId = -1; bookSearchTimer.restart(); }
+            public void changedUpdate(DocumentEvent e) { selectedBookId = -1; bookSearchTimer.restart(); }
         });
-        txtBookId.getDocument().addDocumentListener(new DocumentListener() {
-            public void insertUpdate(DocumentEvent e) { lookupBook(); }
-            public void removeUpdate(DocumentEvent e) { lookupBook(); }
-            public void changedUpdate(DocumentEvent e) { lookupBook(); }
+
+        // 读者搜索防抖
+        readerSearchTimer = new javax.swing.Timer(300, e -> searchReader());
+        readerSearchTimer.setRepeats(false);
+        txtReaderName.getDocument().addDocumentListener(new DocumentListener() {
+            public void insertUpdate(DocumentEvent e) { selectedReaderId = -1; readerSearchTimer.restart(); }
+            public void removeUpdate(DocumentEvent e) { selectedReaderId = -1; readerSearchTimer.restart(); }
+            public void changedUpdate(DocumentEvent e) { selectedReaderId = -1; readerSearchTimer.restart(); }
         });
     }
 
-    private void lookupReader() {
-        String text = txtReaderId.getText().trim();
-        if (text.isEmpty()) { lblReaderName.setText(" "); return; }
-        try {
-            int id = Integer.parseInt(text);
-            Reader reader = new ReaderDao().findById(id);
-            if (reader != null) {
-                lblReaderName.setText("\u2192 " + reader.getName() + "\uff08" + reader.getStatus() + "\uff09");
-                lblReaderName.setForeground("\u5df2\u6ce8\u9500".equals(reader.getStatus()) ? new java.awt.Color(255,51,51) : new java.awt.Color(0,153,0));
-            } else {
-                lblReaderName.setText("\u2192 \u672a\u627e\u5230\u8be5\u8bfb\u8005");
-                lblReaderName.setForeground(new java.awt.Color(255,51,51));
-            }
-        } catch (NumberFormatException ex) { lblReaderName.setText(" "); }
-    }
+    /**
+     * 模糊搜索图书，弹出候选列表供选择
+     */
+    private void searchBook() {
+        String keyword = txtBookName.getText().trim();
+        if (keyword.isEmpty()) { lblBookInfo.setText(" "); return; }
 
-    private void lookupBook() {
-        String text = txtBookId.getText().trim();
-        if (text.isEmpty()) { lblBookName.setText(" "); return; }
-        try {
-            int id = Integer.parseInt(text);
-            Book book = new BookDao().findById(id);
-            if (book != null) {
-                lblBookName.setText("\u2192 " + book.getName() + "\uff08\u5728\u9986" + book.getCurrentCount() + "\u672c\uff09");
-                lblBookName.setForeground(book.getCurrentCount() <= 0 ? new java.awt.Color(255,51,51) : new java.awt.Color(0,153,0));
-            } else {
-                lblBookName.setText("\u2192 \u672a\u627e\u5230\u8be5\u56fe\u4e66");
-                lblBookName.setForeground(new java.awt.Color(255,51,51));
-            }
-        } catch (NumberFormatException ex) { lblBookName.setText(" "); }
-    }
+        List<Book> results = new BookDao().search("书名", keyword);
+        if (results.isEmpty()) {
+            lblBookInfo.setText("未找到匹配图书");
+            lblBookInfo.setForeground(new Color(255, 51, 51));
+            return;
+        }
 
-    @SuppressWarnings("unchecked")
-    // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
-    private void initComponents() {
-        jlabel = new javax.swing.JLabel();
-        jalabel1 = new javax.swing.JLabel();
-        txtReaderId = new javax.swing.JTextField();
-        jLabel3 = new javax.swing.JLabel();
-        txtBookId = new javax.swing.JTextField();
-        btnConfirmBorrow = new javax.swing.JButton();
-        spinnerDays = new javax.swing.JSpinner();
-        setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
-        setTitle("\u529e\u7406\u56fe\u4e66\u501f\u9605");
-        jlabel.setFont(new java.awt.Font("Microsoft YaHei UI", 0, 14));
-        jlabel.setText("\u8bfb\u8005\u7f16\u53f7\uff1a");
-        jalabel1.setFont(new java.awt.Font("Microsoft YaHei UI", 0, 14));
-        jalabel1.setText("\u56fe\u4e66ID\uff1a");
-        txtReaderId.setFont(new java.awt.Font("Microsoft YaHei UI", 0, 14));
-        txtReaderId.addActionListener(evt -> txtBookId.requestFocus());
-        jLabel3.setFont(new java.awt.Font("Microsoft YaHei UI", 0, 14));
-        jLabel3.setText("\u501f\u9605\u5929\u6570\uff1a");
-        txtBookId.setFont(new java.awt.Font("Microsoft YaHei UI", 0, 14));
-        txtBookId.addActionListener(evt -> btnConfirmBorrow.doClick());
-        btnConfirmBorrow.setBackground(new java.awt.Color(51, 153, 255));
-        btnConfirmBorrow.setFont(new java.awt.Font("Microsoft YaHei UI", 1, 16));
-        btnConfirmBorrow.setForeground(new java.awt.Color(255, 255, 255));
-        btnConfirmBorrow.setText("\u786e \u8ba4 \u501f \u9605");
-        btnConfirmBorrow.addActionListener(evt -> btnConfirmBorrowActionPerformed());
-    }// </editor-fold>//GEN-END:initComponents
+        // 单条结果直接选中
+        if (results.size() == 1) {
+            selectBook(results.get(0));
+            return;
+        }
 
-    private void btnConfirmBorrowActionPerformed() {
-        try {
-            int readerId = Integer.parseInt(txtReaderId.getText().trim());
-            if (readerId <= 0) { JOptionPane.showMessageDialog(this, "\u8bfb\u8005\u7f16\u53f7\u5fc5\u987b\u4e3a\u6b63\u6574\u6570\uff01"); return; }
-            int bookId = Integer.parseInt(txtBookId.getText().trim());
-            if (bookId <= 0) { JOptionPane.showMessageDialog(this, "\u56fe\u4e66ID\u5fc5\u987b\u4e3a\u6b63\u6574\u6570\uff01"); return; }
-            int days = (int) spinnerDays.getValue();
-            BorrowDao dao = new BorrowDao();
-            if (dao.checkOverdue(readerId)) { JOptionPane.showMessageDialog(this, "\u501f\u9605\u5931\u8d25\uff1a\u8be5\u8bfb\u8005\u6709\u903e\u671f\u672a\u8fd8\u4e66\u7c4d\uff0c\u8bf7\u5148\u5904\u7406\uff01"); return; }
-            if (!dao.checkLimit(readerId)) { JOptionPane.showMessageDialog(this, "\u501f\u9605\u5931\u8d25\uff1a\u8be5\u8bfb\u8005\u501f\u9605\u6570\u91cf\u5df2\u8fbe\u4e0a\u9650\uff085\u672c\uff09\uff01"); return; }
-            String borrowDate = java.time.LocalDate.now().toString();
-            String returnDate = java.time.LocalDate.now().plusDays(days).toString();
-            boolean success = dao.borrowBook(bookId, readerId, borrowDate, returnDate);
-            if (success) {
-                JOptionPane.showMessageDialog(this, "\u501f\u9605\u6210\u529f\uff01\n\u5e94\u8fd8\u65e5\u671f\uff1a" + returnDate);
-                this.dispose();
-            } else {
-                JOptionPane.showMessageDialog(this, "\u501f\u9605\u5931\u8d25\uff1a\u8bfb\u8005\u4e0d\u5b58\u5728/\u5df2\u6ce8\u9500\uff0c\u6216\u56fe\u4e66\u5e93\u5b58\u4e0d\u8db3\uff01");
-            }
-        } catch (NumberFormatException e) {
-            JOptionPane.showMessageDialog(this, "\u8bf7\u8f93\u5165\u6709\u6548\u7684\u6b63\u6574\u6570\uff01");
+        // 多条结果弹出选择框
+        String[] options = new String[results.size()];
+        for (int i = 0; i < results.size(); i++) {
+            Book b = results.get(i);
+            options[i] = b.getName() + " | " + b.getAuthor() + " | 在馆" + b.getCurrentCount() + "本";
+        }
+        String choice = (String) JOptionPane.showInputDialog(this, "请选择图书：", "搜索结果",
+                JOptionPane.PLAIN_MESSAGE, null, options, options[0]);
+        if (choice != null) {
+            int idx = java.util.Arrays.asList(options).indexOf(choice);
+            if (idx >= 0) selectBook(results.get(idx));
         }
     }
 
-    // Variables declaration - do not modify//GEN-BEGIN:variables
-    private javax.swing.JButton btnConfirmBorrow;
-    private javax.swing.JLabel jLabel3;
-    private javax.swing.JLabel jalabel1;
-    private javax.swing.JLabel jlabel;
-    private javax.swing.JSpinner spinnerDays;
-    private javax.swing.JTextField txtBookId;
-    private javax.swing.JTextField txtReaderId;
-    // End of variables declaration//GEN-END:variables
+    private void selectBook(Book book) {
+        selectedBookId = book.getId();
+        txtBookName.setText(book.getName());
+        lblBookInfo.setText(book.getAuthor() + " | 在馆" + book.getCurrentCount() + "本 | ID:" + book.getId());
+        if (book.getCurrentCount() <= 0) {
+            lblBookInfo.setForeground(new Color(255, 51, 51));
+            lblBookInfo.setText(lblBookInfo.getText() + " (库存不足)");
+        } else {
+            lblBookInfo.setForeground(new Color(0, 153, 0));
+        }
+    }
+
+    /**
+     * 模糊搜索读者，弹出候选列表供选择
+     * 重名读者通过ID区分
+     */
+    private void searchReader() {
+        String keyword = txtReaderName.getText().trim();
+        if (keyword.isEmpty()) { lblReaderInfo.setText(" "); return; }
+
+        List<Reader> results = new ReaderDao().searchReader(keyword);
+        if (results.isEmpty()) {
+            lblReaderInfo.setText("未找到匹配读者");
+            lblReaderInfo.setForeground(new Color(255, 51, 51));
+            return;
+        }
+
+        // 单条结果直接选中
+        if (results.size() == 1) {
+            selectReader(results.get(0));
+            return;
+        }
+
+        // 多条结果弹出选择框（重名的通过ID区分）
+        String[] options = new String[results.size()];
+        for (int i = 0; i < results.size(); i++) {
+            Reader r = results.get(i);
+            options[i] = r.getName() + " (ID:" + r.getId() + ") | " + r.getGender() + " | " + r.getPhone() + " | " + r.getStatus();
+        }
+        String choice = (String) JOptionPane.showInputDialog(this, "请选择读者：", "搜索结果",
+                JOptionPane.PLAIN_MESSAGE, null, options, options[0]);
+        if (choice != null) {
+            int idx = java.util.Arrays.asList(options).indexOf(choice);
+            if (idx >= 0) selectReader(results.get(idx));
+        }
+    }
+
+    private void selectReader(Reader reader) {
+        selectedReaderId = reader.getId();
+        txtReaderName.setText(reader.getName());
+        String info = "ID:" + reader.getId() + " | " + reader.getGender() + " | " + reader.getPhone() + " | " + reader.getStatus();
+        lblReaderInfo.setText(info);
+        if ("已注销".equals(reader.getStatus())) {
+            lblReaderInfo.setForeground(new Color(255, 51, 51));
+            lblReaderInfo.setText(info + " (无法借书)");
+        } else {
+            lblReaderInfo.setForeground(new Color(0, 153, 0));
+        }
+    }
+
+    /**
+     * 执行借书操作
+     */
+    private void doBorrow() {
+        if (selectedBookId <= 0) {
+            JOptionPane.showMessageDialog(this, "请先搜索并选择一本图书！");
+            return;
+        }
+        if (selectedReaderId <= 0) {
+            JOptionPane.showMessageDialog(this, "请先搜索并选择一位读者！");
+            return;
+        }
+
+        int days = (int) spinnerDays.getValue();
+        BorrowDao dao = new BorrowDao();
+
+        if (dao.checkOverdue(selectedReaderId)) {
+            JOptionPane.showMessageDialog(this, "借阅失败：该读者有逾期未还书籍，请先处理！");
+            return;
+        }
+        if (!dao.checkLimit(selectedReaderId)) {
+            JOptionPane.showMessageDialog(this, "借阅失败：该读者借阅数量已达上限（5本）！");
+            return;
+        }
+
+        String borrowDate = java.time.LocalDate.now().toString();
+        String returnDate = java.time.LocalDate.now().plusDays(days).toString();
+
+        boolean success = dao.borrowBook(selectedBookId, selectedReaderId, borrowDate, returnDate);
+        if (success) {
+            JOptionPane.showMessageDialog(this, "借阅成功！\n应还日期：" + returnDate);
+            this.dispose();
+        } else {
+            JOptionPane.showMessageDialog(this, "借阅失败：读者已注销，或图书库存不足！");
+        }
+    }
 }
