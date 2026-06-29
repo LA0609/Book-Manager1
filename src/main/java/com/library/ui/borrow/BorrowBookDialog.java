@@ -79,7 +79,7 @@ public class BorrowBookDialog extends javax.swing.JDialog {
         JLabel lblDays = new JLabel("借阅天数：");
         lblDays.setFont(new Font("Microsoft YaHei UI", Font.PLAIN, 14));
 
-        spinnerDays = new JSpinner(new SpinnerNumberModel(30, 1, 365, 1));
+        spinnerDays = new JSpinner(new SpinnerNumberModel(30, 1, 90, 1));
         spinnerDays.setFont(new Font("Microsoft YaHei UI", Font.PLAIN, 14));
 
         btnConfirm = new JButton("确 认 借 阅");
