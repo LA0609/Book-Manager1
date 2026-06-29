@@ -97,9 +97,15 @@ public UpdateBookFrame(int bookId, BookListFrame mainWin) {
 
         jLabel6.setText("作者：");
 
-        jLabel7.setText("库存：");
+        jLabel7.setText("总藏书量：");
 
         jLabel8.setText("出版社：");
+
+        jTextField6.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jTextField6ActionPerformed(evt);
+            }
+        });
 
         jButton2.setBackground(new java.awt.Color(241, 209, 209));
         jButton2.setText("修改");
@@ -315,6 +321,10 @@ try {
         mainListFrame.toFront();
     }
     }//GEN-LAST:event_jToggleButton1ActionPerformed
+
+    private void jTextField6ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jTextField6ActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_jTextField6ActionPerformed
 
     /**
      * @param args the command line arguments

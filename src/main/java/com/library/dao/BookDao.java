@@ -21,7 +21,7 @@ import java.util.List;
  * - 使用 try-with-resources 自动关闭连接，防止资源泄漏
  * - 软删除设计：delete 方法只标记 is_delete=1，不物理删除数据
  *
- * @author LA
+ * @author
  */
 public class BookDao {
 
@@ -32,7 +32,9 @@ public class BookDao {
      * @return 包含所有未删除图书对象的列表，无数据时返回空列表（不会返回 null）
      */
     public List<Book> findAll() {
+        // 初始化集合，用于存放查询到的所有图书对象
         List<Book> list = new ArrayList<>();
+        // SQL语句：查询所有未被软删除（is_delete=0）的图书全部字段
         String sql = "SELECT * FROM books WHERE is_delete = 0";
 
         try (Connection conn = DBUtil.getConnection();
