@@ -31,6 +31,9 @@ public class BorrowBookDialog extends javax.swing.JDialog {
     private javax.swing.Timer bookSearchTimer;
     private javax.swing.Timer readerSearchTimer;
 
+    /** 标志位：程序设置文本时为true，防止DocumentListener重置选中ID */
+    private boolean settingText = false;
+
     public BorrowBookDialog(java.awt.Frame parent, boolean modal) {
         super(parent, modal);
         setupUI();
@@ -147,18 +150,18 @@ public class BorrowBookDialog extends javax.swing.JDialog {
         bookSearchTimer = new javax.swing.Timer(300, e -> searchBook());
         bookSearchTimer.setRepeats(false);
         txtBookName.getDocument().addDocumentListener(new DocumentListener() {
-            public void insertUpdate(DocumentEvent e) { selectedBookId = -1; bookSearchTimer.restart(); }
-            public void removeUpdate(DocumentEvent e) { selectedBookId = -1; bookSearchTimer.restart(); }
-            public void changedUpdate(DocumentEvent e) { selectedBookId = -1; bookSearchTimer.restart(); }
+            public void insertUpdate(DocumentEvent e) { if (!settingText) selectedBookId = -1; bookSearchTimer.restart(); }
+            public void removeUpdate(DocumentEvent e) { if (!settingText) selectedBookId = -1; bookSearchTimer.restart(); }
+            public void changedUpdate(DocumentEvent e) { if (!settingText) selectedBookId = -1; bookSearchTimer.restart(); }
         });
 
         // 读者搜索防抖
         readerSearchTimer = new javax.swing.Timer(300, e -> searchReader());
         readerSearchTimer.setRepeats(false);
         txtReaderName.getDocument().addDocumentListener(new DocumentListener() {
-            public void insertUpdate(DocumentEvent e) { selectedReaderId = -1; readerSearchTimer.restart(); }
-            public void removeUpdate(DocumentEvent e) { selectedReaderId = -1; readerSearchTimer.restart(); }
-            public void changedUpdate(DocumentEvent e) { selectedReaderId = -1; readerSearchTimer.restart(); }
+            public void insertUpdate(DocumentEvent e) { if (!settingText) selectedReaderId = -1; readerSearchTimer.restart(); }
+            public void removeUpdate(DocumentEvent e) { if (!settingText) selectedReaderId = -1; readerSearchTimer.restart(); }
+            public void changedUpdate(DocumentEvent e) { if (!settingText) selectedReaderId = -1; readerSearchTimer.restart(); }
         });
     }
 
@@ -198,7 +201,9 @@ public class BorrowBookDialog extends javax.swing.JDialog {
 
     private void selectBook(Book book) {
         selectedBookId = book.getId();
+        settingText = true;
         txtBookName.setText(book.getName());
+        settingText = false;
         lblBookInfo.setText(book.getAuthor() + " | 在馆" + book.getCurrentCount() + "本 | ID:" + book.getId());
         if (book.getCurrentCount() <= 0) {
             lblBookInfo.setForeground(new Color(255, 51, 51));
@@ -245,7 +250,9 @@ public class BorrowBookDialog extends javax.swing.JDialog {
 
     private void selectReader(Reader reader) {
         selectedReaderId = reader.getId();
+        settingText = true;
         txtReaderName.setText(reader.getName());
+        settingText = false;
         String info = "ID:" + reader.getId() + " | " + reader.getGender() + " | " + reader.getPhone() + " | " + reader.getStatus();
         lblReaderInfo.setText(info);
         if ("已注销".equals(reader.getStatus())) {
