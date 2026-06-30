@@ -10,6 +10,17 @@ import javax.swing.JFrame;
 import javax.swing.JOptionPane;
 
 /**
+ * 图书修改窗口类
+ *
+ * 作用：从图书列表中选中一本书后，弹出此窗口进行信息编辑。
+ * 简单来说，这就是一个"图书信息编辑表单"，把原有数据回显到输入框，
+ * 用户修改后点击"修改"按钮保存到数据库。
+ *
+ * 核心逻辑：
+ * 1. 通过构造方法接收要修改的图书ID，加载原始数据到输入框（回显）
+ * 2. 用户修改后点击"修改"按钮，校验输入合法性
+ * 3. 特殊校验：总藏书量不能小于已借出数量（否则会导致可借量为负数）
+ * 4. 校验通过后更新数据库，刷新主列表窗口
  *
  * @author lenovo
  */
@@ -18,7 +29,8 @@ public class UpdateBookFrame extends javax.swing.JFrame {
     private int bookId;
 
         /**
-     * Creates new form UpdateBookFrame
+     * 无参构造方法（仅供测试或独立启动时使用）
+     * 注意：此构造不会加载任何图书数据，需要手动调用 loadBookData()
      */
     public UpdateBookFrame() {
         initComponents();
@@ -28,8 +40,11 @@ public class UpdateBookFrame extends javax.swing.JFrame {
         setLocationRelativeTo(null);
     }
 
-// 带参构造（主界面传参调用）
-public UpdateBookFrame(int bookId) {
+    /**
+     * 单参构造方法：只接收图书ID
+     * @param bookId 要修改的图书ID，用于从数据库查询原始数据回显到输入框
+     */
+    public UpdateBookFrame(int bookId) {
     initComponents();
     setTitle("知书阁--图书修改"); 
     this.bookId = bookId;
@@ -38,8 +53,12 @@ public UpdateBookFrame(int bookId) {
     pack();
     setLocationRelativeTo(null);
 }
-// 新增双参数构造：接收图书ID + 主列表窗口
-public UpdateBookFrame(int bookId, BookListFrame mainWin) {
+    /**
+     * 双参构造方法（业务实际使用）：接收图书ID + 主列表窗口引用
+     * @param bookId  要修改的图书ID
+     * @param mainWin 图书列表主窗口引用，修改完成后自动刷新其数据
+     */
+    public UpdateBookFrame(int bookId, BookListFrame mainWin) {
     initComponents();
     setTitle("知书阁--图书修改"); 
     this.bookId = bookId;

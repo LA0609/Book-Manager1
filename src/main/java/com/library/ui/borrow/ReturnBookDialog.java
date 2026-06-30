@@ -9,7 +9,17 @@ import java.util.List;
 
 /**
  * 【弹窗】办理还书
- * 功能：输入借阅记录号，实时显示借阅详情，确认归还
+ *
+ * 作用：图书管理员通过此弹窗为读者办理还书手续。
+ * 简单来说，输入借阅记录号，系统自动显示借阅详情（借的什么书、谁借的、什么时候借的），
+ * 确认无误后点击"确认归还"完成还书。
+ *
+ * 核心设计：
+ * - 输入记录号后实时查询并显示借阅详情（通过 DocumentListener 实现）
+ * - 归还时自动计算逾期罚款（超过应还日期每天0.5元，上限50元）
+ * - 归还操作由 BorrowDao.returnBook() 以事务方式完成，保证数据一致性
+ *
+ * @see BorrowDao#returnBook(int) 实际的还书事务逻辑
  */
 public class ReturnBookDialog extends javax.swing.JDialog {
 
@@ -75,6 +85,11 @@ public class ReturnBookDialog extends javax.swing.JDialog {
         });
     }
 
+    /**
+     * 根据输入的记录号实时查询借阅详情
+     * 简单来说，用户每输入一个字符都会触发此方法，
+     * 自动去数据库查对应的借阅记录并显示在界面上。
+     */
     private void lookupRecord() {
         String text = txtRecordId.getText().trim();
         if (text.isEmpty()) { lblDetail.setText(" "); return; }

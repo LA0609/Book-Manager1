@@ -17,8 +17,20 @@ import java.util.Map;
 
 /**
  * 【弹窗】办理借书
- * 功能：通过书名/读者姓名模糊搜索选择，不需要记编号
- * 重名读者通过ID区分
+ *
+ * 作用：图书管理员通过此弹窗为读者办理借书手续。
+ * 简单来说，这是一个"借书操作台"，输入书名和读者姓名就能完成借书，不需要记编号。
+ *
+ * 核心设计：
+ * - 支持书名/读者姓名模糊搜索，多条结果弹出候选列表供选择
+ * - 搜索防抖：停止输入300ms后才触发查询，避免频繁访问数据库
+ * - 重名图书/读者通过ID区分
+ * - 选中后显示详细信息（作者、在馆数量、性别、手机号等）
+ *
+ * 借书前置校验（由 BorrowDao 完成）：
+ * 1. 该读者是否有逾期未还书籍
+ * 2. 该读者借阅数量是否已达上限（5本）
+ * 3. 图书库存是否充足
  */
 public class BorrowBookDialog extends javax.swing.JDialog {
 
@@ -79,7 +91,7 @@ public class BorrowBookDialog extends javax.swing.JDialog {
         JLabel lblDays = new JLabel("借阅天数：");
         lblDays.setFont(new Font("Microsoft YaHei UI", Font.PLAIN, 14));
 
-        spinnerDays = new JSpinner(new SpinnerNumberModel(30, 1, 90, 1));
+        spinnerDays = new JSpinner(new SpinnerNumberModel(30, 1, 30, 1));
         spinnerDays.setFont(new Font("Microsoft YaHei UI", Font.PLAIN, 14));
 
         btnConfirm = new JButton("确 认 借 阅");
@@ -199,6 +211,10 @@ public class BorrowBookDialog extends javax.swing.JDialog {
         }
     }
 
+    /**
+     * 选中一本图书：记录ID、显示详细信息、判断库存是否充足
+     * @param book 选中的图书对象
+     */
     private void selectBook(Book book) {
         selectedBookId = book.getId();
         settingText = true;
@@ -248,6 +264,10 @@ public class BorrowBookDialog extends javax.swing.JDialog {
         }
     }
 
+    /**
+     * 选中一位读者：记录ID、显示详细信息、判断是否已注销
+     * @param reader 选中的读者对象
+     */
     private void selectReader(Reader reader) {
         selectedReaderId = reader.getId();
         settingText = true;
@@ -265,6 +285,8 @@ public class BorrowBookDialog extends javax.swing.JDialog {
 
     /**
      * 执行借书操作
+     * 简单来说，点击"确认借阅"按钮后，依次校验选择状态、逾期情况、借阅上限，
+     * 全部通过后计算应还日期，调用 DAO 执行借书事务。
      */
     private void doBorrow() {
         if (selectedBookId <= 0) {

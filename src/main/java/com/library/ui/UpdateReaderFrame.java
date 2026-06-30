@@ -10,6 +10,17 @@ import com.library.util.ValidatorUtil;
 import javax.swing.JOptionPane;
 
 /**
+ * 修改读者信息弹窗界面类
+ *
+ * 作用：从读者列表中选中一位读者后，弹出此窗口进行信息编辑。
+ * 简单来说，这就是一个"读者信息编辑表单"，把原有数据回显到输入框，
+ * 用户修改后点击"保存修改"按钮更新到数据库。
+ *
+ * 核心逻辑：
+ * 1. 通过构造方法接收主窗口引用和选中的读者对象，回显数据到输入框
+ * 2. 读者编号（主键）设置为不可编辑，防止误改
+ * 3. 保存时执行：非空校验 → 正则格式校验 → 数据库查重（排除自身）→ 更新数据
+ * 4. 修改成功后刷新主窗口表格，关闭当前弹窗
  *
  * @author 81382
  */
@@ -20,15 +31,21 @@ public class UpdateReaderFrame extends javax.swing.JFrame {
     private Reader targetReader;
 
     /**
-     * Creates new form UpdateReaderFrame
+     * 无参构造方法（仅供测试或独立启动时使用）
+     * 注意：此构造不会加载任何读者数据
      */
     public UpdateReaderFrame() {
         initComponents();
         // 窗口居中
         this.setLocationRelativeTo(null);
     }
-    // 带参构造：接收主窗口、选中的读者
-        public UpdateReaderFrame(ReaderPanel panel, Reader reader) {
+    /**
+     * 带参构造方法（业务实际使用）：接收主窗口引用和要修改的读者对象
+     *
+     * @param panel  读者管理主窗口引用，修改完成后自动刷新其表格数据
+     * @param reader 从数据库查询到的读者对象，其字段值将回显到输入框
+     */
+    public UpdateReaderFrame(ReaderPanel panel, Reader reader) {
         initComponents();
         this.setLocationRelativeTo(null);
         this.mainPanel = panel;
