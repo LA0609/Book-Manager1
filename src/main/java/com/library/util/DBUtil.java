@@ -31,7 +31,7 @@ public class DBUtil {
     private static final String USER = "root";
 
     /** 数据库密码（课设阶段硬编码，生产环境应使用配置文件或环境变量） */
-    private static final String PASSWORD = "3296901701aA@";
+    private static final String PASSWORD = "cjj060830.";
 
     /**
      * 静态代码块：类加载时自动执行，用于注册 JDBC 驱动
